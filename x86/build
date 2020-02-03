@@ -1,0 +1,5 @@
+#!/bin/sh
+
+fasm init.asm     init
+fasm reboot.asm   reboot
+fasm shutdown.asm shutdown

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+: ${CFLAGS:="-march=native -pipe -Os -fno-ident -fomit-frame-pointer -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables"}
+: ${CPPFLAGS:="-DNDEBUG -U_FORTIFY_SOURCE"}
+: ${LDFLAGS:="-Wl,--strip-all"}
+: ${LDLIBS:=""}
+: ${WARNINGS:="-Wdouble-promotion -Wpointer-arith"}
+
+gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o init     $LDFLAGS $LDLIBS
+gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o reboot   $LDFLAGS $LDLIBS
+gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o shutdown $LDFLAGS $LDLIBS
+
+strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr init
+strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr reboot
+strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr shutdown
+
+sstrip init     2>/dev/null
+sstrip reboot   2>/dev/null
+sstrip shutdown 2>/dev/null

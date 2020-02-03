@@ -1,0 +1,6 @@
+init
+reboot
+shutdown
+x86/init
+x86/reboot
+x86/shutdown
