@@ -63,7 +63,7 @@ main (int ac, char *av[]) {
 
 	rc = fork ();
 	if (rc == 0) {
-		execle ("/bin/rc", "rc", (char *)0, envp);
+		execle ("/bin/initrc", "initrc", (char *)0, envp);
 		exit   (1); }
 
 	for (;;) {

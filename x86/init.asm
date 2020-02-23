@@ -209,7 +209,7 @@ align 4
 	term db "TERM=linux", 0
 
 	rcpath db "/bin/"
-	rcbin  db "rc", 0
+	rcbin  db "initrc", 0
 
 	ptsfs  db "devpts", 0
 	procfs db "proc", 0
