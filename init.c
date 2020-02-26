@@ -24,6 +24,9 @@ static char *envp[] = {
 	"TERM=linux",
 	0 };
 
+static char *rcargv[] = {
+	"/bin/initrc", 0, 0 };
+
 static void
 restart (int n) {
 	kill (rc, SIGTERM);
@@ -63,7 +66,7 @@ main (int ac, char *av[]) {
 
 	rc = fork ();
 	if (rc == 0) {
-		execle ("/bin/initrc", "initrc", (char *)0, envp);
+		execve (rcargv[0], rcargv, envp);
 		exit   (1); }
 
 	for (;;) {
