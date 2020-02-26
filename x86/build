@@ -1,5 +1,7 @@
 #!/bin/sh
 
-fasm init.asm     init
-fasm reboot.asm   reboot
-fasm shutdown.asm shutdown
+mkdir bin 2>/dev/null
+
+fasm init.asm     bin/init
+fasm reboot.asm   bin/reboot
+fasm shutdown.asm bin/shutdown

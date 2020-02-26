@@ -6,14 +6,16 @@
 : ${LDLIBS:=""}
 : ${WARNINGS:="-Wdouble-promotion -Wpointer-arith"}
 
-gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o init     $LDFLAGS $LDLIBS
-gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o reboot   $LDFLAGS $LDLIBS
-gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o shutdown $LDFLAGS $LDLIBS
+mkdir bin 2>/dev/null
 
-strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr init
-strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr reboot
-strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr shutdown
+gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o bin/init     $LDFLAGS $LDLIBS
+gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o bin/reboot   $LDFLAGS $LDLIBS
+gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o bin/shutdown $LDFLAGS $LDLIBS
 
-sstrip init     2>/dev/null
-sstrip reboot   2>/dev/null
-sstrip shutdown 2>/dev/null
+strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr bin/init
+strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr bin/reboot
+strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr bin/shutdown
+
+sstrip bin/init     2>/dev/null
+sstrip bin/reboot   2>/dev/null
+sstrip bin/shutdown 2>/dev/null
