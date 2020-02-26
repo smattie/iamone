@@ -22,7 +22,7 @@ define LINUX_REBOOT_CMD_CAD_OFF   0
 define LINUX_REBOOT_CMD_RESTART   0x01234567
 define LINUX_REBOOT_CMD_POWER_OFF 0x4321fedc
 
-segment readable executable
+segment readable writable executable
 start:
 
 	xor   eax, eax
@@ -116,46 +116,51 @@ start:
 	xor   esi, esi
 	int   80h
 
-	mov    dl, signal
-	mov   eax, edx
+	mov   [sigsetup], dword sighand
+	mov    al, sigaction
 	mov   ebx, SIGINT
-	mov   ecx, restart
+	mov   ecx, sigsetup
 	int   80h
 
-	mov   eax, edx
-	mov   ebx, SIGTERM
-	mov   ecx, poweroff
+	mov    al, sigaction
+	mov    bl, SIGTERM
 	int   80h
 
+	xor   ebp, ebp      ;;; whether or not we'll call reboot
+	mov   [action], ebp ;;; and what will happen if we do
+
+.forkrc:
 	mov    al, fork
 	xor   ebx, ebx
 	int   80h
-	mov   ebp, eax
 	test  eax, eax
 	jz    .execrc
 
 	or    ebx, -1
 	xor   ecx, ecx
-	xor   edx, edx
+
+	test   ebp, ebp
+	cmovnz ebx, eax
 
 .bringoutyourdead:
 	mov   eax, waitpid
-;	or    ebx, -1
-;	xor   ecx, ecx
-;	xor   edx, edx
 	int   80h
-	cmp   eax, ebp
-	jne   .bringoutyourdead
-
-	mov   edx, LINUX_REBOOT_CMD_POWER_OFF
-	mov   ecx, LINUX_REBOOT_CMD_RESTART
+	mov   edi, [action]
 	test  edi, edi
-	cmovs edx, ecx
+	jz    .bringoutyourdead
+	test  ebp, ebp
+	jnz   .reboot
 
+	mov   [rcargv + 4], rcflag
+	xor   eax, eax
+	or    ebp, -1
+	jmp   .forkrc
+
+.reboot:
 	mov   eax, reboot
 	mov   ebx, LINUX_REBOOT_MAGIC1
 	mov   ecx, LINUX_REBOOT_MAGIC2C
-;	xor   esi, esi
+	mov   edx, edi
 	int   80h
 	jmp   .bringoutyourdead
 
@@ -164,7 +169,6 @@ start:
 	mov   ebx, rcpath
 	mov   ecx, rcargv
 	mov   edx, envp
-;	xor   esi, esi
 	int   80h
 
 .exit:
@@ -173,43 +177,36 @@ start:
 	int   80h
 
 ;;; ------------------------------------------------------------
+;;; turns out that registers are restored after the signal handler
 
-restart:
-	pusha
-	mov   eax, kill
-	mov   ebx, ebp
-	mov   ecx, SIGTERM
+sighand:
+	mov   ebx, LINUX_REBOOT_CMD_POWER_OFF
+	mov   ecx, LINUX_REBOOT_CMD_RESTART
+	cmp   eax, SIGINT
+	cmove ebx, ecx
+	mov   [action], ebx
+
+	mov    al, signal
+	mov   ebx, SIGINT
+	xor   ecx, ecx
 	int   80h
-	popa
-
-	xor   edi, edi
-	dec   edi
-	ret
-
-;;; ------------------------------------------------------------
-
-poweroff:
-	pusha
-	mov   eax, kill
-	mov   ebx, ebp
-	mov   ecx, SIGTERM
-	int   80h
-	popa
-
-	xor   edi, edi
+	mov    al, signal
+	mov    bl, SIGTERM
+	int    80h
 	ret
 
 ;;; ------------------------------------------------------------
 
 align 4
 	envp   dd home, term, 0
-	rcargv dd rcbin, 0
+	rcargv dd rcbin, 0, 0
 
 	home db "HOME=/", 0
 	term db "TERM=linux", 0
 
 	rcpath db "/bin/"
 	rcbin  db "initrc", 0
+	rcflag db "-s", 0
 
 	ptsfs  db "devpts", 0
 	procfs db "proc", 0
@@ -237,5 +234,9 @@ align 4
 	devin  db "/dev/stdin", 0
 	devout db "/dev/stdout", 0
 	deverr db "/dev/stderr", 0
+
+action:
+sigsetup:
+	rb 156
 
 ;; vim: set ft=fasm:

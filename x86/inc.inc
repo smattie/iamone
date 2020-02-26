@@ -21,6 +21,7 @@ define signal      48
 define umount      52
 define dup2        63
 define setsid      66
+define sigaction   67
 define sethostname 74
 define symlink     83
 define reboot      88

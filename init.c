@@ -15,9 +15,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-static pid_t rc;
-static int doPoweroff;
-static int doRestart;
+static int action;
 
 static char *envp[] = {
 	"HOME=/",
@@ -28,15 +26,10 @@ static char *rcargv[] = {
 	"/bin/initrc", 0, 0 };
 
 static void
-restart (int n) {
-	kill (rc, SIGTERM);
-	doRestart = 1;
-	return; }
-
-static void
-poweroff (int n) {
-	kill (rc, SIGTERM);
-	doPoweroff = 1;
+sighand (int n) {
+	action = n == SIGINT ? RB_AUTOBOOT : RB_POWER_OFF;
+	signal (SIGINT,  SIG_DFL);
+	signal (SIGTERM, SIG_DFL);
 	return; }
 
 extern int
@@ -61,18 +54,27 @@ main (int ac, char *av[]) {
 
 	reboot (RB_DISABLE_CAD);
 
-	signal (SIGINT,  restart);
-	signal (SIGTERM, poweroff);
+	struct sigaction sigsetup = { .sa_handler = &sighand };
+	sigaction (SIGINT,  &sigsetup, 0);
+	sigaction (SIGTERM, &sigsetup, 0);
 
-	rc = fork ();
-	if (rc == 0) {
+	if (fork () == 0) {
 		execve (rcargv[0], rcargv, envp);
 		exit   (1); }
 
 	for (;;) {
-		pid_t dead = waitpid (-1, 0, 0);
-		if (rc == dead) {
-			if (doPoweroff != 0) { reboot (RB_POWER_OFF); }
-			if (doRestart  != 0) { reboot (RB_AUTOBOOT);  }}}
+		waitpid (-1, 0, 0);
+		if (action) {
+			break; }}
+
+	rcargv[1] = "-s";
+
+	pid_t rc = fork ();
+	if (rc == 0) {
+		execve (rcargv[0], rcargv, envp);
+		exit   (1); }
+
+	waitpid (rc, 0, 0);
+	reboot  (action);
 
 	return 0; }
