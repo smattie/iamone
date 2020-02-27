@@ -25,6 +25,9 @@ define LINUX_REBOOT_CMD_POWER_OFF 0x4321fedc
 segment readable writable executable
 start:
 
+	mov   ecx, dword [esp]
+	lea   esp, [esp + ecx*4 + 8]
+
 	xor   eax, eax
 	xor   edx, edx
 	xor   esi, esi
@@ -168,7 +171,7 @@ start:
 	mov    al, execve
 	mov   ebx, rcpath
 	mov   ecx, rcargv
-	mov   edx, envp
+	mov   edx, esp
 	int   80h
 
 .exit:
@@ -198,11 +201,7 @@ sighand:
 ;;; ------------------------------------------------------------
 
 align 4
-	envp   dd home, term, 0
 	rcargv dd rcbin, 0, 0
-
-	home db "HOME=/", 0
-	term db "TERM=linux", 0
 
 	rcpath db "/bin/"
 	rcbin  db "initrc", 0

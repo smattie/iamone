@@ -17,11 +17,6 @@
 
 static int action;
 
-static char *envp[] = {
-	"HOME=/",
-	"TERM=linux",
-	0 };
-
 static char *rcargv[] = {
 	"/bin/initrc", 0, 0 };
 
@@ -33,7 +28,7 @@ sighand (int n) {
 	return; }
 
 extern int
-main (int ac, char *av[]) {
+main (int ac, char *av[], char *ev[]) {
 	if (getpid () != 1) {
 		return -1; }
 
@@ -59,7 +54,7 @@ main (int ac, char *av[]) {
 	sigaction (SIGTERM, &sigsetup, 0);
 
 	if (fork () == 0) {
-		execve (rcargv[0], rcargv, envp);
+		execve (rcargv[0], rcargv, ev);
 		exit   (1); }
 
 	for (;;) {
@@ -71,7 +66,7 @@ main (int ac, char *av[]) {
 
 	pid_t rc = fork ();
 	if (rc == 0) {
-		execve (rcargv[0], rcargv, envp);
+		execve (rcargv[0], rcargv, ev);
 		exit   (1); }
 
 	waitpid (rc, 0, 0);
