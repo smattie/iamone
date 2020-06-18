@@ -1,6 +1,8 @@
 #!/bin/sh
 
-: ${CFLAGS:="-march=native -pipe -Os -fno-ident -fomit-frame-pointer -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables"}
+: ${CC:="gcc"}
+: ${STRIP:="strip"}
+: ${CFLAGS:="-pipe -Os -fno-ident -fomit-frame-pointer -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables"}
 : ${CPPFLAGS:="-DNDEBUG -U_FORTIFY_SOURCE"}
 : ${LDFLAGS:="-Wl,--strip-all"}
 : ${LDLIBS:=""}
@@ -8,14 +10,10 @@
 
 mkdir bin 2>/dev/null
 
-gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o bin/init     $LDFLAGS $LDLIBS
-gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o bin/reboot   $LDFLAGS $LDLIBS
-gcc -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o bin/shutdown $LDFLAGS $LDLIBS
+$CC -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o bin/init     $LDFLAGS $LDLIBS
+$CC -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o bin/reboot   $LDFLAGS $LDLIBS
+$CC -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o bin/shutdown $LDFLAGS $LDLIBS
 
-strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr bin/init
-strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr bin/reboot
-strip -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame -R .jcr bin/shutdown
-
-sstrip bin/init     2>/dev/null
-sstrip bin/reboot   2>/dev/null
-sstrip bin/shutdown 2>/dev/null
+$STRIP -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame bin/init
+$STRIP -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame bin/reboot
+$STRIP -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame bin/shutdown
