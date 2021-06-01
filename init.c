@@ -1,11 +1,13 @@
-/// ----------------------------------------------------------------
-/// init
-/// https://github.com/smattie/iamone
-///
-/// copyright 2020 smattie
-/// licensed under the GNU GPL v3
-/// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// init
+// copyright 2020 smattie
+//
+// This work is free. You can redistribute it and/or modify it under the
+// terms of the Do What The Fuck You Want To Public License, Version 2,
+// as published by Sam Hocevar. See the COPYING file for more details.
+// ----------------------------------------------------------------------------
 
+#define  _POSIX_C_SOURCE 200112L
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
@@ -29,18 +31,21 @@ sighand (int n) {
 
 extern int
 main (int ac, char *av[], char *ev[]) {
+	struct sigaction sigsetup = { .sa_handler = &sighand };
+	pid_t rc;
+
 	if (getpid () != 1) {
 		return -1; }
+
+	mount ("devtmpfs", "/dev", "devtmpfs", 0, 0);
 
 	mkdir ("/dev/pts", 00755);
 	mkdir ("/dev/shm", 01777);
 
-	mount ("devpts", "/dev/pts", "devpts", MS_NOSUID | MS_NOEXEC,            "gid=5,mode=0620");
-	mount ("proc",   "/proc",    "proc",   MS_NOSUID | MS_NOEXEC,            0);
-	mount ("sysfs",  "/sys",     "sysfs",  MS_NOSUID | MS_NOEXEC,            0);
-	mount ("tmpfs",  "/dev/shm", "tmpfs",  MS_NOSUID | MS_NOEXEC | MS_NODEV, "mode=1777");
-	mount ("tmpfs",  "/run",     "tmpfs",  MS_NOSUID | MS_NOEXEC | MS_NODEV, "mode=0755,size=10%");
-	mount ("tmpfs",  "/tmp",     "tmpfs",  MS_NOSUID | MS_NODEV,             "size=50%");
+	mount ("proc",   "/proc",    "proc",   0, 0);
+	mount ("sysfs",  "/sys",     "sysfs",  0, 0);
+	mount ("devpts", "/dev/pts", "devpts", 0, "gid=5,mode=0620");
+	mount ("tmpfs",  "/dev/shm", "tmpfs",  0, "mode=1777");
 
 	symlink ("/proc/self/fd",   "/dev/fd");
 	symlink ("/proc/self/fd/0", "/dev/stdin");
@@ -49,7 +54,6 @@ main (int ac, char *av[], char *ev[]) {
 
 	reboot (RB_DISABLE_CAD);
 
-	struct sigaction sigsetup = { .sa_handler = &sighand };
 	sigaction (SIGINT,  &sigsetup, 0);
 	sigaction (SIGTERM, &sigsetup, 0);
 
@@ -64,7 +68,7 @@ main (int ac, char *av[], char *ev[]) {
 
 	rcargv[1] = "-s";
 
-	pid_t rc = fork ();
+	rc = fork ();
 	if (rc == 0) {
 		execve (rcargv[0], rcargv, ev);
 		exit   (1); }

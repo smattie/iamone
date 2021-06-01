@@ -10,9 +10,9 @@
 
 mkdir bin 2>/dev/null
 
-$CC -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o bin/init     $LDFLAGS $LDLIBS
-$CC -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o bin/reboot   $LDFLAGS $LDLIBS
-$CC -std=gnu11 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o bin/shutdown $LDFLAGS $LDLIBS
+$CC -std=c99 $CPPFLAGS $CFLAGS $WARNINGS init.c     -o bin/init     $LDFLAGS $LDLIBS
+$CC -std=c99 $CPPFLAGS $CFLAGS $WARNINGS reboot.c   -o bin/reboot   $LDFLAGS $LDLIBS
+$CC -std=c99 $CPPFLAGS $CFLAGS $WARNINGS shutdown.c -o bin/shutdown $LDFLAGS $LDLIBS
 
 $STRIP -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame bin/init
 $STRIP -R .note.ABI-tag -R .gnu.version -R .eh_frame_hdr -R .eh_frame bin/reboot
